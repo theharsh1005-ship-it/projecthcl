@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Factor Authentication System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 360px;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 12px;
+            font-size: 25px;
+        }
+
+        p {
+            color: #cbd5e1;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 10px 0;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #334155;
+            color: white;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #38bdf8;
+        }
+
+        input::placeholder {
+            color: #cbd5e1;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #0369a1;
+        }
+
+        #otpSection,
+        #dashboard {
+            display: none;
+        }
+
+        #message {
+            margin-top: 18px;
+            color: #4ade80;
+            line-height: 1.5;
+        }
+
+        .demo {
+            color: #facc15;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+
+        .logout {
+            background: #dc2626;
+        }
+
+        .logout:hover {
+            background: #b91c1c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div id="loginSection">
+            <h1>Secure Login</h1>
+            <p>Welcome! Please enter your login details.</p>
+
+            <input type="text" id="username"
+                placeholder="Enter Username">
+
+            <input type="password" id="password"
+                placeholder="Enter Password">
+
+            <button onclick="login()">Login</button>
+        </div>
+
+        <div id="otpSection">
+            <h1>OTP Verification</h1>
+            <p>Enter your six-digit verification code.</p>
+
+            <input type="text" id="otp"
+                placeholder="Enter OTP"
+                maxlength="6"
+                inputmode="numeric">
+
+            <button onclick="verifyOTP()">Verify OTP</button>
+
+            <button onclick="generateOTP()">Resend OTP</button>
+
+            <div class="demo" id="demoOTP"></div>
+        </div>
+
+        <div id="dashboard">
+            <h1>Login Successful!</h1>
+            <p>Your two-factor authentication is complete.</p>
+
+            <button class="logout" onclick="logout()">
+                Logout
+            </button>
+        </div>
+
+        <div id="message"></div>
+
+    </div>
+
+    <script>
+
+        let generatedOTP = "";
+        let otpExpiry = 0;
+
+        function login() {
+
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            if (username.trim() === "" || password === "") {
+                document.getElementById("message").innerText =
+                    "Please enter username and password.";
+                return;
+            }
+
+            generateOTP();
+
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("otpSection").style.display = "block";
+
+            document.getElementById("message").innerText =
+                "Login details entered. Now verify your OTP.";
+
+        }
+
+        function generateOTP() {
+
+            generatedOTP = crypto.getRandomValues(new Uint32Array(1))[0] % 900000;
+            generatedOTP = (generatedOTP + 100000).toString();
+
+            otpExpiry = Date.now() + 60000;
+
+            document.getElementById("demoOTP").innerText =
+                "Demo OTP: " + generatedOTP;
+
+            document.getElementById("otp").value = "";
+        }
+
+        function verifyOTP() {
+
+            let enteredOTP = document.getElementById("otp").value;
+
+            if (Date.now() > otpExpiry) {
+                document.getElementById("message").innerText =
+                    "OTP has expired. Please resend it.";
+                return;
+            }
+
+            if (enteredOTP === generatedOTP) {
+
+                document.getElementById("otpSection").style.display = "none";
+                document.getElementById("dashboard").style.display = "block";
+
+                document.getElementById("message").innerText =
+                    "Authentication completed successfully.";
+
+                generatedOTP = "";
+
+            } else {
+
+                document.getElementById("message").innerText =
+                    "Invalid OTP. Please try again.";
+
+            }
+        }
+
+        function logout() {
+
+            generatedOTP = "";
+            otpExpiry = 0;
+
+            document.getElementById("dashboard").style.display = "none";
+            document.getElementById("loginSection").style.display = "block";
+
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+            document.getElementById("otp").value = "";
+            document.getElementById("demoOTP").innerText = "";
+
+            document.getElementById("message").innerText =
+                "You have logged out successfully.";
+        }
+
+    </script>
+
+</body>
+</html>
